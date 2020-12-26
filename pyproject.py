@@ -10,12 +10,9 @@ import bs4
 try:
 	web_address = "https://ipinfo.io/"
 	res = requests.get(web_address)
-	#print(res)
 	data = res.json()
-	#print(data)
 	your_city = data['city']
 	your_region = data['region']
-	#print("location = ", your_city, ", ", your_region)
 except Exception as e:
 	print("issue", e)
 
@@ -26,12 +23,9 @@ try:
 	a3 = "&appid=c6e315d09197cec231495138183954bd"
 	web_add = a1 + a2 + a3
 	result = requests.get(web_add)
-	#print(result)
 	datas = result.json()
-	#print(datas) 
 	main = datas['main']
 	temp = main['temp']
-	#print(temp)
 except Exception as e:
 	print(e)
 
@@ -39,13 +33,9 @@ except Exception as e:
 try:
 	web = "https://www.brainyquote.com/quote_of_the_day"
 	resu = requests.get(web)
-	#print(resu)
 	data = bs4.BeautifulSoup(resu.text, "html.parser")
-	#print(data)
 	info = data.find('img', {'class':'p-qotd'})
-	#print(info)
 	quote = info['alt']
-	#print(quote)
 except Exception as e:
 	print("issue ", e)
 
@@ -89,24 +79,57 @@ def f5():
 	try:
 		con = connect("shubham.db")
 		cursor = con.cursor()
-		sql = "insert into student values('%d', '%s', '%d')"
-		
-		rno = int(add_stu_entRno.get())
-		if len(add_stu_entName.get()) > 1:
-			name = add_stu_entName.get()
+		sql = "select * from student"
+		cursor.execute(sql)
+		data = cursor.fetchall()
+		info = ""
+		numbersss = []
+
+		for d in data:
+			info = info + "rno = " + str(d[0]) + " name = " + str(d[1]) + " marks = "  + str(d[2])
+			numbersss.append(d[0])
+		if add_stu_entRno.get() == "":
+			showerror("Issue", "Rno cannot be empty.")
+		elif add_stu_entName.get() == "":
+			showerror("Issue", "Name cannot be empty.")
+		elif len(add_stu_entName.get()) < 2:
+			showerror("Issue", "Name should contain atleast 2 letters.")
+		elif add_stu_entMarks.get() == "":
+			showerror("Issue", "Marks cannot be empty.")
 		else:
-			showinfo("Issue", "Name should contain atleast 2 letters.")
-		
-		marks = int(add_stu_entMarks.get())
-		cursor.execute(sql % (rno, name, marks))
-		con.commit()
-		showinfo("Success", "Record added.")
-	except Exception as e:
-		showerror("Issue ", str(e))
+			try:
+				if int(add_stu_entRno.get()) > 0:
+
+					if int(add_stu_entRno.get()) not in numbersss:
+						rno = int(add_stu_entRno.get())
+					else:
+						showerror("Issue", "Record already exists.")
+
+				else:
+					showerror("Issue", "Rno should be integer greater than 0.")
+			except ValueError:
+				showerror("Issue", "Rno should be integer greater than 0.")
+			name = add_stu_entName.get()
+			try:
+				if int(add_stu_entMarks.get()) > 0 and int(add_stu_entMarks.get()) < 100:
+					marks = int(add_stu_entMarks.get())
+				else:
+					showerror("Issue", "Marks should be an integer within range of 0 to 100.")
+			except ValueError:
+				showerror("Issue", "Marks should be an integer within range of 0 to 100.")
+			sql = "insert into student values('%d', '%s', '%d')"
+			cursor.execute(sql % (rno, name, marks))
+			con.commit()
+			showinfo("Success", "Record added.")
+	except UnboundLocalError:
+
 		con.rollback()
 	finally:
 		if con is not None:
 			con.close()
+
+
+
 
 def f6():
 	root.withdraw()
@@ -121,15 +144,46 @@ def f8():
 	try:
 		con = connect("shubham.db")
 		cursor = con.cursor()
-		r = int(update_stu_entRno.get())
-		n = update_stu_entName.get()
-		m = int(update_stu_entMarks.get())
-		sql = "update student set name = '%s', marks = '%s' where rno = '%s'"%(n,m,r)
+		sql = "select * from student"
 		cursor.execute(sql)
-		con.commit()
-		showinfo("Success", "Record updated.")
-	except Exception as e:
-		showerror("Issue ", str(e))
+		data = cursor.fetchall()
+		info = ""
+		numberss = []
+		for d in data:
+			info = info + "rno = " + str(d[0]) + " name = " + str(d[1]) + " marks = "  + str(d[2])
+			numberss.append(d[0])
+		if update_stu_entRno.get() == "":
+			showerror("Issue", "Rno cannot be empty.")
+		# elif type(update_stu_entRno.get()) == str:
+		# 	showerror("Issue", "Enter correct roll number.")
+		elif update_stu_entName.get() == "":
+			showerror("Issue", "Name cannot be empty.")
+		elif len(update_stu_entName.get()) < 2:
+			showerror("Issue", "Name should contain atleast 2 letters.")
+		elif update_stu_entMarks.get() == "":
+			showerror("Issue", "Marks cannot be empty.")
+		else:
+			try:
+				if int(update_stu_entRno.get()) > 0 and int(update_stu_entRno.get()) in numberss:
+					r = int(update_stu_entRno.get())
+				else:
+					showerror("Issue", "Enter correct rno which you want to update.")
+			except ValueError:
+				showerror("Issue", "Rno should be integer greater than 0.")
+			n = update_stu_entName.get()
+			try:
+				if int(update_stu_entMarks.get()) > 0 and int(update_stu_entMarks.get()) < 100:
+					m = int(update_stu_entMarks.get())
+				else:
+					showerror("Issue", "Marks should be an integer within range of 0 to 100.")
+			except ValueError:
+				showerror("Issue", "Marks should be an integer within range of 0 to 100.")
+			sql = "update student set name = '%s', marks = '%s' where rno = '%s'"%(n,m,r)
+			cursor.execute(sql)
+			con.commit()
+			showinfo("Success", "Record updated.")
+	except UnboundLocalError:
+
 		con.rollback()
 	finally:
 		if con is not None:
@@ -144,13 +198,31 @@ def f10():
 	try:
 		con = connect("shubham.db")
 		cursor = con.cursor()
-		r = int(delete_stu_entRno.get())
+		sql = "select * from student"
+		cursor.execute(sql)
+		data = cursor.fetchall()
+		info = ""
+		number = []
+
+		for d in data:
+			info = info + "rno = " + str(d[0]) + " name = " + str(d[1]) + " marks = "  + str(d[2])
+			number.append(d[0])
+		if delete_stu_entRno.get() == "":
+			showerror("Issue", "Rno cannot be empty.")
+		else:
+
+			if int(delete_stu_entRno.get()) > 0 and int(delete_stu_entRno.get()) in number:
+				r = int(delete_stu_entRno.get())
+			else:
+				showerror("Issue", "Enter correct rno.")
 		sql = "delete from student where rno = '%s'"%(r)
 		cursor.execute(sql)
 		con.commit()
 		showinfo("Success", "Record deleted.")
-	except Exception as e:
-		showerror("Issue ", str(e))
+	except UnboundLocalError:
+		pass
+	except ValueError:
+		showerror("Issue ", "Enter correct roll number.")
 		con.rollback()
 	finally:
 		if con is not None:
@@ -173,18 +245,16 @@ def f12():
 		marks = []
 		for d in data:
 			info = info + "rno = " + str(d[0]) + " name = " + str(d[1]) + " marks = "  + str(d[2])
-			#print(d[1])
 			# storing all names in a list
 			names.append(d[1])
 			marks.append(d[2])
-		#print(names)
-		#print(marks)
+
 		plt.bar(names, marks, color=['red', 'green', 'blue', 'black', 'orange', 'purple', 'grey'])
 		plt.title("Batch Information")
 		plt.xlabel("Names")
 		plt.ylabel("Marks")
-		ax = plt.axes()
-		ax.set_facecolor("#caf0f8")
+		#ax = plt.axes()
+		#ax.set_facecolor("#caf0f8")
 		plt.show()
 		#view_stu_data.insert(INSERT,info)
 	except Exception as e:
@@ -192,7 +262,7 @@ def f12():
 	finally:
 		if con is not None:
 			con.close()
-			
+
 
 
 root = Tk()
@@ -211,7 +281,7 @@ location_label = "Location: " + your_city + ", " + your_region + "       Temp: "
 my_loc = StringVar()
 my_loc.set(location_label)
 lblLoc = Label(root, textvariable=my_loc, font=('Georgia'))
-#print(location_label)
+
 
 my_quote = StringVar()
 my_quote.set(quote)
